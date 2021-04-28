@@ -527,5 +527,4 @@ func (c *Connection) Process(msg *Packet) *Packet {
 	// 	ret = h.PlayerEnter(conn, msg.Body)
 	// }
 	return ret
-
 }

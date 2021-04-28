@@ -1,0 +1,18 @@
+package test;
+
+message CreateAgentReq {
+    required string plr = 1;
+    required float x = 2;
+    required float y = 3;
+    required float z = 4;
+    required float radius = 5;
+    required float speed = 6;
+}
+
+message CreateAgentAck {
+    required float x = 2;
+    required float y = 3;
+    required float z = 4;
+    required float radius = 5;
+    required float speed = 6;
+}

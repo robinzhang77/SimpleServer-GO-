@@ -22,6 +22,9 @@ func main() {
 	s.Start()
 }
 
+const PacketHeaderSize = 4                   // 数据包头部的大小
+const DefaultMaxPacketSize = 4 * 1024 * 1024 // 默认最大包大小:10M
+
 //////////////////////////////////////////////////////////
 var (
 	ErrType           = errors.New("error type")
@@ -64,8 +67,8 @@ func (c *marshaler) String() string {
 
 // 消息包
 type Packet struct {
-	Len  uint32 `json:"-"`
-	Body []byte `json:"body"`
+	Len  uint32
+	Body []byte
 }
 
 type Server struct {
@@ -295,8 +298,6 @@ func NewCodec(byteOrder binary.ByteOrder) *codecImpl {
 	return c
 }
 
-const PacketHeaderSize = 4                   // 数据包头部的大小
-const DefaultMaxPacketSize = 4 * 1024 * 1024 // 默认最大包大小:10M
 // 读取数据
 func (c *codecImpl) Read(reader io.Reader, p *Packet) error {
 

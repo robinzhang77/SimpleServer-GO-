@@ -35,7 +35,7 @@ func main() {
 
 }
 
-const PacketHeaderSize = 4                   // 数据包头部的大小./
+const PacketHeaderSize = 8                   // 数据包头部的大小./
 const DefaultMaxPacketSize = 4 * 1024 * 1024 // 默认最大包大小:10M
 
 //////////////////////////////////////////////////////////
@@ -81,6 +81,7 @@ func (c *marshaler) String() string {
 // 消息包
 type Packet struct {
 	Len  uint32
+	ID   uint32
 	Body []byte
 }
 
@@ -321,7 +322,7 @@ func (c *codecImpl) Read(reader io.Reader, p *Packet) error {
 	}
 
 	p.Len = c.byteOrder.Uint32(buf[0:4])
-	// p.ID = c.byteOrder.Uint32(buf[4:8])
+	p.ID = c.byteOrder.Uint32(buf[4:8])
 	// p.Flag = c.byteOrder.Uint32(buf[8:12])
 	// p.Cmd = c.byteOrder.Uint32(buf[12:16])
 	// p.Ec = c.byteOrder.Uint32(buf[16:20])
@@ -361,7 +362,7 @@ func (c *codecImpl) Write(writer io.Writer, p *Packet) error {
 	buf := make([]byte, PacketHeaderSize)
 
 	c.byteOrder.PutUint32(buf[0:4], p.Len)
-	// c.byteOrder.PutUint32(buf[4:8], p.ID)
+	c.byteOrder.PutUint32(buf[4:8], p.ID)
 	// c.byteOrder.PutUint32(buf[8:12], p.Flag)
 	// c.byteOrder.PutUint32(buf[12:16], p.Cmd)
 	// c.byteOrder.PutUint32(buf[16:20], p.Ec)

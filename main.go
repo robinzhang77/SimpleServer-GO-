@@ -18,6 +18,8 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+var nav *navigation.Navigation
+
 func main() {
 
 	//time.Sleep(time.Second * 10)
@@ -453,15 +455,14 @@ func (c *Connection) writeLoop() {
 			packet := p
 			//exception.RecoveryFunc(func() {
 			err := c.write(packet)
+			c.PutPoolPacket(packet)
 			if err != nil {
 				if !c.IsClosed() {
 					fmt.Println("Send packet failed: ", err)
 				}
-
 				return
 			}
 			//})
-			c.PutPoolPacket(packet)
 
 		case <-c.ctx.Done():
 			return
@@ -469,27 +470,27 @@ func (c *Connection) writeLoop() {
 	}
 }
 
-func (c *Connection) flush() {
-	for {
-		select {
-		case p := <-c.writeChan:
-			packet := p
-			//exception.RecoveryFunc(func() {
-			err := c.write(packet)
-			if err != nil {
-				if !c.IsClosed() {
-					fmt.Println("flush packet failed: ", err)
-				}
+// func (c *Connection) flush() {
+// 	for {
+// 		select {
+// 		case p := <-c.writeChan:
+// 			packet := p
+// 			//exception.RecoveryFunc(func() {
+// 			err := c.write(packet)
+// 			if err != nil {
+// 				if !c.IsClosed() {
+// 					fmt.Println("flush packet failed: ", err)
+// 				}
 
-				return
-			}
-			//})
-			c.PutPoolPacket(packet)
-		default:
-			return
-		}
-	}
-}
+// 				return
+// 			}
+// 			//})
+// 			c.PutPoolPacket(packet)
+// 		default:
+// 			return
+// 		}
+// 	}
+// }
 
 func (c *Connection) write(packet *Packet) (err error) {
 	err = c.codec.Write(c.conn, packet)
@@ -526,12 +527,7 @@ func (c *Connection) handleLoop() {
 			packet := p
 			//exception.RecoveryFunc(func() {
 			resp := c.Process(packet)
-			if resp == nil {
-				return
-			}
-
 			err := c.Send(resp)
-
 			if err != nil && !c.IsClosed() {
 				fmt.Println("handle send failed:", packet.Len, err)
 			}
@@ -546,10 +542,29 @@ func (c *Connection) handleLoop() {
 }
 
 func (c *Connection) Process(msg *Packet) *Packet {
-	var ret *Packet
-	// switch msg.Cmd {
-	// case CmdMsgPlayerEnterFight.Value():
-	// 	ret = h.PlayerEnter(conn, msg.Body)
-	// }
+	var ret *Packet = c.GetPoolPacket()
+	ret.ID = msg.ID
+
+	switch msg.ID {
+	case gameproto.MsgID_ReqCreateAgent:
+		info := &gameproto.CreateAgentReq{}
+		info.Unmarshal(msg.Body)
+		idx := nav.AddAgent(1, info.X, info.Y, info.Z, info.Radius, info.Speed)
+
+		//这里需要从GetAgent中取出来新的坐标
+
+		retInfo := &gameproto.CreateAgentNotify{}
+		retInfo.Id = info.Id
+		retInfo.Plr = info.Plr
+		retInfo.AgentId = int32(idx)
+		retInfo.X = info.X
+		retInfo.Y = info.Y
+		retInfo.Z = info.Z
+		ret.Body, _ = retInfo.Marshal()
+	case gameproto.MsgID_ReqMove:
+	default:
+		fmt.Println("process msgid invalid", msg.ID)
+	}
+
 	return ret
 }

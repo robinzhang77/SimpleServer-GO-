@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-type navigation struct {
+type Navigation struct {
 	dll            *syscall.DLL
 	callInit       *syscall.Proc
 	callLoadMap    *syscall.Proc
@@ -21,8 +21,8 @@ type navigation struct {
 	callUpdate     *syscall.Proc
 }
 
-func NewNavigation() *navigation {
-	n := &navigation{}
+func NewNavigation() *Navigation {
+	n := &Navigation{}
 	n.dll, _ = syscall.LoadDLL("./navigation/NavigationDLL.dll")
 	n.callInit, _ = n.dll.FindProc("recast_init")
 	n.callLoadMap, _ = n.dll.FindProc("recast_loadmap")
@@ -34,7 +34,7 @@ func NewNavigation() *navigation {
 	return n
 }
 
-func (n *navigation) Init() bool {
+func (n *Navigation) Init() bool {
 	ret, _, err := n.callInit.Call()
 	if err != nil {
 		e := err.(syscall.Errno)
@@ -47,11 +47,11 @@ func (n *navigation) Init() bool {
 	return *bVal
 }
 
-func (n *navigation) Fini() {
+func (n *Navigation) Fini() {
 
 }
 
-func (n *navigation) LoadMap(id uint32, strFilePath string) bool {
+func (n *Navigation) LoadMap(id uint32, strFilePath string) bool {
 	fmt.Println("loadmap : ", id, strFilePath)
 	char := C.CString(strFilePath)
 
@@ -68,7 +68,7 @@ func (n *navigation) LoadMap(id uint32, strFilePath string) bool {
 	return *bVal
 }
 
-func (n *navigation) FreeMap(id uint32) bool {
+func (n *Navigation) FreeMap(id uint32) bool {
 	r1, _, err := n.callFreeMap.Call(uintptr(id))
 	if err != nil {
 		e := err.(syscall.Errno)
@@ -82,7 +82,7 @@ func (n *navigation) FreeMap(id uint32) bool {
 	return *bVal
 }
 
-func (n *navigation) AddAgent(id uint32, x, y, z float32, radius float32, speed float32) int {
+func (n *Navigation) AddAgent(id uint32, x, y, z float32, radius float32, speed float32) int {
 
 	pos := [3]float32{x, y, z}
 	fmt.Println("add angent :", pos, radius, speed)
@@ -101,7 +101,7 @@ func (n *navigation) AddAgent(id uint32, x, y, z float32, radius float32, speed 
 	return nVal
 }
 
-func (n *navigation) SetMoveTarget(id uint32, idxs []uint32, x, y, z float32) {
+func (n *Navigation) SetMoveTarget(id uint32, idxs []uint32, x, y, z float32) {
 	nLen := len(idxs)
 	pos := [3]float32{x, y, z}
 	fmt.Println("set angent move tar :", pos, idxs)

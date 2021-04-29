@@ -101,7 +101,7 @@ func (n *Navigation) AddAgent(id uint32, x, y, z float32, radius float32, speed 
 	return nVal
 }
 
-func (n *Navigation) SetMoveTarget(id uint32, idxs []uint32, x, y, z float32) {
+func (n *Navigation) SetMoveTarget(id uint32, idxs []int32, x, y, z float32) {
 	nLen := len(idxs)
 	pos := [3]float32{x, y, z}
 	fmt.Println("set angent move tar :", pos, idxs)

@@ -562,6 +562,9 @@ func (c *Connection) Process(msg *Packet) *Packet {
 		retInfo.Z = info.Z
 		ret.Body, _ = retInfo.Marshal()
 	case gameproto.MsgID_ReqMove:
+		info := &gameproto.SetMoveReq{}
+		info.Unmarshal(msg.Body)
+		nav.SetMoveTarget(1, info.Ids, info.X, info.Y, info.Z)
 	default:
 		fmt.Println("process msgid invalid", msg.ID)
 	}

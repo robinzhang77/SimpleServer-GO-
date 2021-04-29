@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Demo/navigation"
 	"context"
 	"encoding/binary"
 	"errors"
@@ -16,13 +17,25 @@ import (
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
 
+	//time.Sleep(time.Second * 10)
+
+	rand.Seed(time.Now().UnixNano())
+	nav := navigation.NewNavigation()
+	nav.Init()
+	nav.LoadMap(1, "./navmesh/solo_navmesh.bin")
+	nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
+	nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
+	// nIdx := nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
+	// if nIdx == -1 {
+	// 	fmt.Println("add agent idx ", nIdx)
+	// }
 	s := newServer()
 	s.Start()
+
 }
 
-const PacketHeaderSize = 4                   // 数据包头部的大小
+const PacketHeaderSize = 4                   // 数据包头部的大小./
 const DefaultMaxPacketSize = 4 * 1024 * 1024 // 默认最大包大小:10M
 
 //////////////////////////////////////////////////////////

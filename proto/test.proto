@@ -1,6 +1,19 @@
 syntax = "proto3";
-package test;
+package gameproto;
 
+enum MsgID {
+    NONE = 0;
+    NotifyPlrID = 1;
+    ReqCreateAgent = 2;
+    ReqMove = 3;
+}
+
+//登陆成功，服务器分配一个唯一ID
+message NotifyPlrUUID {
+    string plr = 1;
+}
+
+//造兵请求
 message CreateAgentReq {
     string plr = 1;
     int32 id = 2;
@@ -11,11 +24,21 @@ message CreateAgentReq {
     float speed = 7;
 }
 
-message CreateAgentAck {
+//造兵返回（广播）
+message CreateAgentNotify {
     string plr = 1;
     int32 id = 2;
     int32 agent_id = 3;
     float x = 4;
     float y = 5;
     float z = 6;
+}
+
+//请求移动
+message SetMoveReq {
+    string plr = 1;
+    repeated int32 ids = 2;
+    float x = 3;
+    float y = 4;
+    float z = 5;
 }

@@ -6,7 +6,7 @@ init: ## Init project config
 proto: ## Complie proto file
 #	./protoc_client.exe --gogofaster_out=./pb ./proto/*.proto --proto_path=./proto/
 #	./protoc_client.exe --go_out=./pb ./proto/*.proto --proto_path=./proto/
-	./protoc_golang  --gogofaster_out=./pb ./proto/*.proto
+	./protoc_golang  --gogofaster_out=./gameproto ./proto/*.proto
 	./protoc_client.exe ./proto/*.proto --csharp_out=S:/work/zgame/nvmeshdemo/Assets/Scripts/pb/
 
 .PHONY: submodule

@@ -1,6 +1,7 @@
 package main
 
 import (
+	gameproto "Demo/gameproto/proto"
 	"Demo/navigation"
 	"context"
 	"encoding/binary"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
+	uuid "github.com/satori/go.uuid"
 )
 
 func main() {
@@ -81,7 +83,7 @@ func (c *marshaler) String() string {
 // 消息包
 type Packet struct {
 	Len  uint32
-	ID   uint32
+	ID   gameproto.MsgID
 	Body []byte
 }
 
@@ -144,7 +146,8 @@ func newConnection(c *net.TCPConn) *Connection {
 		conn:      c,
 		readChan:  make(chan *Packet, readChanCap),
 		writeChan: make(chan *Packet, writeChanCap),
-		codec:     NewCodec(binary.BigEndian),
+		//codec:     NewCodec(binary.BigEndian),
+		codec: NewCodec(binary.LittleEndian),
 	}
 
 	tcpConn.pool.New = func() interface{} {
@@ -253,6 +256,14 @@ func (s *Server) onConnect(conn *net.TCPConn) {
 
 	s.connections.Store(conn.RemoteAddr(), c)
 
+	msg := NewPacket()
+
+	msg.ID = gameproto.MsgID_NotifyPlrID
+	info := &gameproto.NotifyPlrUUID{Plr: uuid.NewV4().String()}
+	msg.Body, _ = info.Marshal()
+	msg.Len = uint32(len(msg.Body))
+	c.Send(msg)
+
 	c.loop()
 }
 
@@ -322,7 +333,7 @@ func (c *codecImpl) Read(reader io.Reader, p *Packet) error {
 	}
 
 	p.Len = c.byteOrder.Uint32(buf[0:4])
-	p.ID = c.byteOrder.Uint32(buf[4:8])
+	p.ID = gameproto.MsgID(c.byteOrder.Uint32(buf[4:8]))
 	// p.Flag = c.byteOrder.Uint32(buf[8:12])
 	// p.Cmd = c.byteOrder.Uint32(buf[12:16])
 	// p.Ec = c.byteOrder.Uint32(buf[16:20])
@@ -362,7 +373,7 @@ func (c *codecImpl) Write(writer io.Writer, p *Packet) error {
 	buf := make([]byte, PacketHeaderSize)
 
 	c.byteOrder.PutUint32(buf[0:4], p.Len)
-	c.byteOrder.PutUint32(buf[4:8], p.ID)
+	c.byteOrder.PutUint32(buf[4:8], uint32(p.ID))
 	// c.byteOrder.PutUint32(buf[8:12], p.Flag)
 	// c.byteOrder.PutUint32(buf[12:16], p.Cmd)
 	// c.byteOrder.PutUint32(buf[16:20], p.Ec)

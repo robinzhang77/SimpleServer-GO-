@@ -1,18 +1,21 @@
+syntax = "proto3";
 package test;
 
 message CreateAgentReq {
-    required string plr = 1;
-    required float x = 2;
-    required float y = 3;
-    required float z = 4;
-    required float radius = 5;
-    required float speed = 6;
+    string plr = 1;
+    int32 id = 2;
+    float x = 3;
+    float y = 4;
+    float z = 5;
+    float radius = 6;
+    float speed = 7;
 }
 
 message CreateAgentAck {
-    required float x = 2;
-    required float y = 3;
-    required float z = 4;
-    required float radius = 5;
-    required float speed = 6;
+    string plr = 1;
+    int32 id = 2;
+    int32 agent_id = 3;
+    float x = 4;
+    float y = 5;
+    float z = 6;
 }

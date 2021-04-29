@@ -120,7 +120,7 @@ func init() {
 
 	go func() {
 		for {
-			fmt.Println("navigation update tick")
+			//fmt.Println("navigation update tick")
 			time.Sleep(time.Second)
 		}
 	}()

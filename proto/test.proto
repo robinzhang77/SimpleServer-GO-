@@ -6,6 +6,8 @@ enum MsgID {
     NotifyPlrID = 1;
     ReqCreateAgent = 2;
     ReqMove = 3;
+    ReqAgentsInfo = 4;
+    SyncMove = 5;
 }
 
 //登陆成功，服务器分配一个唯一ID
@@ -41,4 +43,20 @@ message SetMoveReq {
     float x = 3;
     float y = 4;
     float z = 5;
+}
+
+message SingleAgentMoveInfo {
+    int32 agent_id = 1;
+    float x = 2;
+    float y = 3;
+    float z = 4;
+}
+
+message AgentsInfoReq {
+    repeated int32 ids = 1;
+}
+
+//同步移动
+message NotifyMoveInfo {
+    repeated SingleAgentMoveInfo arrInfo = 1;
 }

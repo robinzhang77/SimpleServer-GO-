@@ -25,18 +25,17 @@ func main() {
 	//time.Sleep(time.Second * 10)
 
 	rand.Seed(time.Now().UnixNano())
-	nav := navigation.NewNavigation()
+	nav = navigation.NewNavigation()
 	nav.Init()
 	nav.LoadMap(1, "./navmesh/solo_navmesh.bin")
 	nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
 	nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
-	// nIdx := nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
-	// if nIdx == -1 {
-	// 	fmt.Println("add agent idx ", nIdx)
-	// }
+	ids := []int32{0, 1}
+	nav.SetMoveTarget(1, ids, 0, 0, 0)
+	nav.GetAgentsInfo(1, ids)
+
 	s := newServer()
 	s.Start()
-
 }
 
 const PacketHeaderSize = 8                   // 数据包头部的大小./
@@ -565,6 +564,26 @@ func (c *Connection) Process(msg *Packet) *Packet {
 		info := &gameproto.SetMoveReq{}
 		info.Unmarshal(msg.Body)
 		nav.SetMoveTarget(1, info.Ids, info.X, info.Y, info.Z)
+	case gameproto.MsgID_ReqAgentsInfo:
+		info := &gameproto.AgentsInfoReq{}
+		info.Unmarshal(msg.Body)
+		agents := nav.GetAgentsInfo(1, info.GetIds())
+
+		retInfo := &gameproto.NotifyMoveInfo{}
+
+		for i := 0; i < len(agents); i++ {
+			a := agents[i]
+			singleInfo := &gameproto.SingleAgentMoveInfo{}
+			singleInfo.AgentId = a.AgentID
+			singleInfo.X = a.X
+			singleInfo.Y = a.Y
+			singleInfo.Z = a.Z
+			retInfo.ArrInfo = append(retInfo.ArrInfo, singleInfo)
+		}
+
+		ret.ID = gameproto.MsgID_SyncMove
+		ret.Body, _ = retInfo.Marshal()
+
 	default:
 		fmt.Println("process msgid invalid", msg.ID)
 	}

@@ -17,8 +17,10 @@ type Navigation struct {
 	callLoadMap    *syscall.Proc
 	callFreeMap    *syscall.Proc
 	callAddAgent   *syscall.Proc
+	callGetAnent   *syscall.Proc
 	callSetMoveTar *syscall.Proc
 	callUpdate     *syscall.Proc
+	loopChan       chan interface{}
 }
 
 func NewNavigation() *Navigation {
@@ -28,9 +30,11 @@ func NewNavigation() *Navigation {
 	n.callLoadMap, _ = n.dll.FindProc("recast_loadmap")
 	n.callFreeMap, _ = n.dll.FindProc("recast_freemap")
 	n.callAddAgent, _ = n.dll.FindProc("add_agent")
+	n.callGetAnent, _ = n.dll.FindProc("get_agent")
 	n.callSetMoveTar, _ = n.dll.FindProc("set_move_target_by_idxs")
 	n.callUpdate, _ = n.dll.FindProc("update_tick")
 
+	n.loopChan = make(chan interface{}, 100)
 	return n
 }
 
@@ -44,6 +48,9 @@ func (n *Navigation) Init() bool {
 		}
 	}
 	bVal := (*bool)(unsafe.Pointer(ret))
+	if *bVal {
+		go n.update()
+	}
 	return *bVal
 }
 
@@ -104,8 +111,8 @@ func (n *Navigation) AddAgent(id uint32, x, y, z float32, radius float32, speed 
 func (n *Navigation) SetMoveTarget(id uint32, idxs []int32, x, y, z float32) {
 	nLen := len(idxs)
 	pos := [3]float32{x, y, z}
-	fmt.Println("set angent move tar :", pos, idxs)
-	_, _, err := n.callSetMoveTar.Call(uintptr(id), uintptr(unsafe.Pointer(&idxs)), uintptr(nLen), uintptr(unsafe.Pointer(&pos)))
+	fmt.Println("set angent move tar :", pos, idxs, nLen)
+	_, _, err := n.callSetMoveTar.Call(uintptr(id), uintptr(unsafe.Pointer(&idxs[0])), uintptr(nLen), uintptr(unsafe.Pointer(&pos)))
 	if err != nil {
 		e := err.(syscall.Errno)
 		if e != 0 {
@@ -115,13 +122,46 @@ func (n *Navigation) SetMoveTarget(id uint32, idxs []int32, x, y, z float32) {
 	}
 }
 
-func init() {
-	fmt.Println("navigation init")
+func (n *Navigation) UpdateTick(deltaTime float32) {
+	n.callUpdate.Call(uintptr(math.Float32bits(deltaTime)))
+}
 
-	go func() {
-		for {
-			//fmt.Println("navigation update tick")
-			time.Sleep(time.Second)
+type AgentInfo struct {
+	AgentID int32
+	X       float32
+	Y       float32
+	Z       float32
+}
+
+func (n *Navigation) GetAgentsInfo(id uint32, ids []int32) []*AgentInfo {
+	agents := []*AgentInfo{}
+	nLen := len(ids)
+	for i := 0; i < nLen; i++ {
+		pos := [3]float32{}
+		n.callGetAnent.Call(uintptr(id), uintptr(ids[i]), uintptr(unsafe.Pointer(&pos)))
+		//fmt.Println("agent id:", ids[i], " pos:", pos)
+		ag := &AgentInfo{}
+		ag.AgentID = ids[i]
+		ag.X = pos[0]
+		ag.Y = pos[1]
+		ag.Z = pos[2]
+
+		agents = append(agents, ag)
+	}
+	return agents
+}
+
+func (n *Navigation) update() {
+	interval := time.Millisecond * 16
+	tiker := time.NewTicker(interval)
+
+	for {
+		select {
+		case <-n.loopChan:
+			//fmt.Println("loopchan11111111111")
+		case <-tiker.C:
+			n.UpdateTick(0.016)
+			//fmt.Println("update...............")
 		}
-	}()
+	}
 }

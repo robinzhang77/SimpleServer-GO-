@@ -39,7 +39,7 @@ func NewNavigation() *Navigation {
 }
 
 func (n *Navigation) Init() bool {
-	ret, _, err := n.callInit.Call()
+	_, _, err := n.callInit.Call()
 	if err != nil {
 		e := err.(syscall.Errno)
 		if e != 0 {
@@ -47,11 +47,8 @@ func (n *Navigation) Init() bool {
 			return false
 		}
 	}
-	bVal := (*bool)(unsafe.Pointer(ret))
-	if *bVal {
-		go n.update()
-	}
-	return *bVal
+	go n.update()
+	return true
 }
 
 func (n *Navigation) Fini() {
@@ -62,7 +59,8 @@ func (n *Navigation) LoadMap(id uint32, strFilePath string) bool {
 	fmt.Println("loadmap : ", id, strFilePath)
 	char := C.CString(strFilePath)
 
-	r1, _, err := n.callLoadMap.Call(uintptr(id), uintptr(unsafe.Pointer(char)))
+	//r1, _, err := n.callLoadMap.Call(uintptr(id), uintptr(unsafe.Pointer(char)))
+	_, _, err := n.callLoadMap.Call(uintptr(id), uintptr(unsafe.Pointer(char)))
 	if err != nil {
 		e := err.(syscall.Errno)
 		if e != 0 {
@@ -71,12 +69,13 @@ func (n *Navigation) LoadMap(id uint32, strFilePath string) bool {
 		}
 	}
 
-	bVal := (*bool)(unsafe.Pointer(r1))
-	return *bVal
+	//bVal := (*bool)(unsafe.Pointer(r1))
+	return true
 }
 
 func (n *Navigation) FreeMap(id uint32) bool {
-	r1, _, err := n.callFreeMap.Call(uintptr(id))
+	//r1, _, err := n.callFreeMap.Call(uintptr(id))
+	_, _, err := n.callFreeMap.Call(uintptr(id))
 	if err != nil {
 		e := err.(syscall.Errno)
 		if e != 0 {
@@ -85,8 +84,9 @@ func (n *Navigation) FreeMap(id uint32) bool {
 		}
 	}
 
-	bVal := (*bool)(unsafe.Pointer(r1))
-	return *bVal
+	//bVal := (*bool)(unsafe.Pointer(r1))
+	//return *bVal
+	return true
 }
 
 func (n *Navigation) AddAgent(id uint32, x, y, z float32, radius float32, speed float32) int {

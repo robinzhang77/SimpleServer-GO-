@@ -28,11 +28,11 @@ func main() {
 	nav = navigation.NewNavigation()
 	nav.Init()
 	nav.LoadMap(1, "./navmesh/solo_navmesh.bin")
-	nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
-	nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
-	ids := []int32{0, 1}
-	nav.SetMoveTarget(1, ids, 0, 0, 0)
-	nav.GetAgentsInfo(1, ids)
+	//nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
+	//nav.AddAgent(1, -33, 0.1, -2.8, 2, 25)
+	//ids := []int32{0, 1}
+	//nav.SetMoveTarget(1, ids, 0, 0, 0)
+	//nav.GetAgentsInfo(1, ids)
 
 	s := newServer()
 	s.Start()
